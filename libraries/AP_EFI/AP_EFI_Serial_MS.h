@@ -39,10 +39,10 @@ private:
     bool read_incoming_realtime_data();
     void send_request(uint8_t table, uint16_t first_offset, uint16_t last_offset);
     uint8_t read_byte_CRC32();
-    uint32_t CRC32_compute_byte(uint32_t inCrc32, uint8_t data);
+    uint32_t CRC32_compute_byte(uint16_t inCrc32, uint8_t data);
 
     // Serial Protocol Variables
-    uint32_t checksum;
+    uint16_t checksum;
     uint8_t step;
     uint8_t response_flag;
     uint16_t message_counter;

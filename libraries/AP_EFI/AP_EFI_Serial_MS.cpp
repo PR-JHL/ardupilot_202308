@@ -41,13 +41,13 @@ void AP_EFI_Serial_MS::update()
 
     uint32_t now = AP_HAL::millis();
 
-    const uint32_t expected_bytes = 2 + (RT_LAST_OFFSET - RT_FIRST_OFFSET) + 4;
+    const uint32_t expected_bytes = 127;
     if (port->available() >= expected_bytes && read_incoming_realtime_data()) {
         last_response_ms = now;
         copy_to_frontend();
     }
 
-    if (now - last_response_ms > 100) {
+    if (port->available() == 0 || now - last_response_ms > 200) {
         port->discard_input();
         // Request an update from the realtime table (7).
         // The data we need start at offset 6 and ends at 129
@@ -63,14 +63,14 @@ bool AP_EFI_Serial_MS::read_incoming_realtime_data()
     uint16_t message_length = 0;
 
     // reset checksum before reading new data
-    checksum = 0;
+    checksum = 0xffff;
     
     // Message length field begins the message (16 bits, excluded from CRC calculation)
     // Message length value excludes the message length and CRC bytes 
     message_length = port->read() << 8;
     message_length += port->read();
 
-    if (message_length >= 256) {
+    if (message_length >= 256) {//不知道要不要改
         // don't process invalid messages
         // hal.console->printf("message_length: %u\n", message_length);
         return false;
@@ -157,7 +157,7 @@ bool AP_EFI_Serial_MS::read_incoming_realtime_data()
     received_CRC += port->read();
                         
     if (received_CRC != checksum) {
-        // hal.console->printf("EFI CRC: 0x%08x 0x%08x\n", received_CRC, checksum);
+        hal.console->printf("EFI CRC: 0x%08x 0x%08x\n", received_CRC, checksum);
         return false;
     }
 
@@ -186,15 +186,15 @@ void AP_EFI_Serial_MS::send_request(uint8_t table, uint16_t first_offset, uint16
     // Command 'r' (0x72)
     // Null CANid (0x00)
     const uint8_t data[9] = {
-        0x00,
-        0x07,
-        0x72,
-        0x00,
-        (uint8_t)table,
-        (uint8_t)(first_offset >> 8),
-        (uint8_t)(first_offset),
-        (uint8_t)(length >> 8),
-        (uint8_t)(length)   
+        0x60,
+        //0x07,
+        //0x72,
+        //0x00,
+        //(uint8_t)table,
+        //(uint8_t)(first_offset >> 8),
+        //(uint8_t)(first_offset),
+        //(uint8_t)(length >> 8),
+        //(uint8_t)(length)   
     };
     
     uint32_t crc = 0;
@@ -202,17 +202,17 @@ void AP_EFI_Serial_MS::send_request(uint8_t table, uint16_t first_offset, uint16
     // Write the request and calc CRC
     for (uint8_t i = 0;  i != sizeof(data) ; i++) {
         // Message size is excluded from CRC
-        if (i > 1) {
-            crc = CRC32_compute_byte(crc, data[i]);
-        }
+        //if (i > 1) {
+            //crc = CRC32_compute_byte(crc, data[i]);
+        //}
         port->write(data[i]);
     }
     
     // Write the CRC32
-    port->write((uint8_t)(crc >> 24));
-    port->write((uint8_t)(crc >> 16));
-    port->write((uint8_t)(crc >> 8));
-    port->write((uint8_t)crc);
+    //port->write((uint8_t)(crc >> 24));
+    //port->write((uint8_t)(crc >> 16));
+    //port->write((uint8_t)(crc >> 8));
+    //port->write((uint8_t)crc);
 
 }
 
@@ -224,8 +224,22 @@ uint8_t AP_EFI_Serial_MS::read_byte_CRC32()
     return data;
 }
 
+/* uint16_t crc_cal_by_byte(uint16_t *ptr, uint32_t len)
+{
+	uint16_t  crc = 0xffff;
+ 
+	while (len-- != 0)
+	{
+		uint16_t high = (unsigned int)(crc / 256); //取CRC高8位
+		crc <<= 8;
+		crc ^= crc_ta_8[high^*ptr];
+		ptr++;
+	}
+	return crc;
+} */
+
 // CRC32 matching MegaSquirt
-uint32_t AP_EFI_Serial_MS::CRC32_compute_byte(uint32_t crc, uint8_t data)
+uint32_t AP_EFI_Serial_MS::CRC32_compute_byte(uint16_t crc, uint8_t data)
 {
     crc ^= ~0U;
     crc = crc_crc32(crc, &data, 1);
