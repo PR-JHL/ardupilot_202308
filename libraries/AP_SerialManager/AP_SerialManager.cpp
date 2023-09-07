@@ -536,11 +536,11 @@ void AP_SerialManager::init()
                     break;
                 
                 case SerialProtocol_DLA_ECU:
+                    state[i].baud.set_and_default(AP_SERIALMANAGER_DLA_ECU_BAUD/1000);
                     uart->begin(state[i].baudrate(),
                                         AP_SERIALMANAGER_DLA_ECU_BUFSIZE_RX,
                                         AP_SERIALMANAGER_DLA_ECU_BUFSIZE_TX);
                     //NOT SURE WHICH WOULD WORK
-                    //state[i].baud.set_and_default(AP_SERIALMANAGER_DLA_ECU_BAUD/1000); 
                     // update baud param in case user looks at it
                 
 

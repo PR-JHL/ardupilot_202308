@@ -158,6 +158,7 @@ public:
         SerialProtocol_RunCam = 26,
         SerialProtocol_Hott = 27,
         SerialProtocol_Scripting = 28,
+        /// @brief 
         SerialProtocol_CRSF = 29,
         SerialProtocol_Generator = 30,
         SerialProtocol_Winch = 31,
@@ -174,6 +175,7 @@ public:
         SerialProtocol_MSP_DisplayPort = 42,
         SerialProtocol_MAVLinkHL = 43,
         SerialProtocol_Tramp = 44,
+        /// @brief 
         SerialProtocol_DDS_XRCE = 45,
         SerialProtocol_DLA_ECU = 46,                    //Customized design: Specifically for the ECU of DLA
         SerialProtocol_NumProtocols                    // must be the last value
